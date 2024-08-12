@@ -42,40 +42,8 @@ public class MyScheduleServerController {
             @RequestParam(value = "updatedDay", required = false) String updatedDay,
             @RequestParam(value = "manager", required = false) String manager) {
 
-        // SQL 쿼리와 파라미터 리스트 초기화
-        StringBuilder sql = new StringBuilder("SELECT * FROM schedule");
-        List<Object> params = new ArrayList<>();
-
-        // 필터 조건 추가
-        if (updatedDay != null && !updatedDay.isEmpty()) {
-            sql.append(" WHERE DATE(updated_day) = ?");
-            params.add(Timestamp.valueOf(updatedDay + " 00:00:00"));
-        }
-
-        if (manager != null && !manager.isEmpty()) {
-            if (params.isEmpty()) {
-                sql.append(" WHERE manager = ?");
-            } else {
-                sql.append(" AND manager = ?");
-            }
-            params.add(manager);
-        }
-
-        // 정렬 추가
-        sql.append(" ORDER BY updated_day DESC");
-
-        // DB 조회
-        return jdbcTemplate.query(sql.toString(), params.toArray(), new RowMapper<MyScheduleResponseDto>() {
-            @Override
-            public MyScheduleResponseDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Long id = rs.getLong("id");
-                String task = rs.getString("task");
-                String managerName = rs.getString("manager");
-                Timestamp createdDay = rs.getTimestamp("created_day");
-                Timestamp updatedDayTimestamp = rs.getTimestamp("updated_day");
-                return new MyScheduleResponseDto(id, task, managerName, createdDay, updatedDayTimestamp);
-            }
-        });
+        MyScheduleService myScheduleService = new MyScheduleService(jdbcTemplate);
+        return myScheduleService.getSchedules(updatedDay, manager);
     }
 
     @PutMapping("/schedules/{id}")

@@ -5,11 +5,13 @@ import com.sparta.myscheduleserver.dto.MyScheduleResponseDto;
 import com.sparta.myscheduleserver.entity.MySchedule;
 import com.sparta.myscheduleserver.repository.MyScheduleRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MyScheduleService {
     private final JdbcTemplate jdbcTemplate;
@@ -48,6 +50,12 @@ public class MyScheduleService {
         } else {
             throw new IllegalArgumentException(id + "라는 ID가 Schedule에 없습니다.");
         }
+    }
+
+    public List<MyScheduleResponseDto> getSchedules(String updatedDay, String manager) {
+        // DB 저장
+        MyScheduleRepository myScheduleRepository = new MyScheduleRepository(jdbcTemplate);
+        return myScheduleRepository.findSchedules(updatedDay, manager);
     }
 
     private MySchedule findById(Long id) {
