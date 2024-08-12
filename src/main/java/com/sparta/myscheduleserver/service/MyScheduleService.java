@@ -58,6 +58,32 @@ public class MyScheduleService {
         return myScheduleRepository.findSchedules(updatedDay, manager);
     }
 
+    public MyScheduleResponseDto updateMemo(Long id, MyScheduleRequestDto myScheduleRequestDto) {
+        // DB 저장
+        MyScheduleRepository myScheduleRepository = new MyScheduleRepository(jdbcTemplate);
+
+        // 해당 메모가 DB에 존재하는지 확인
+        MySchedule mySchedule = findById(id);
+        if(mySchedule != null) {
+            // 비밀번호 확인
+            if (!mySchedule.getPassword().equals(myScheduleRequestDto.getPassword())) {
+                throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            }
+
+            myScheduleRepository.update(id, myScheduleRequestDto.getTask(), myScheduleRequestDto.getManager(), new Timestamp(System.currentTimeMillis()));
+
+            return new MyScheduleResponseDto(
+                    mySchedule.getId(),
+                    mySchedule.getTask(),
+                    mySchedule.getManager(),
+                    mySchedule.getCreatedDay(),
+                    mySchedule.getUpdatedDay()
+            );
+        } else {
+            throw new IllegalArgumentException("선택한 Schedule은 존재하지 않습니다.");
+        }
+    }
+
     private MySchedule findById(Long id) {
         // DB 조회
         String sql = "SELECT * FROM schedule WHERE id = ?";

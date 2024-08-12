@@ -98,4 +98,10 @@ public class MyScheduleRepository {
             }
         }, id);
     }
+
+    public void update(Long id, String task, String manager, Timestamp timestamp) {
+        // schedule 내용 수정
+        String sql = "UPDATE schedule SET task = ?, manager = ?, updated_day = ? WHERE id = ?";
+        jdbcTemplate.update(sql, task,manager, new Timestamp(System.currentTimeMillis()), id);
+    }
 }

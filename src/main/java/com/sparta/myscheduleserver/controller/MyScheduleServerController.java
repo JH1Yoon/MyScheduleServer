@@ -36,7 +36,6 @@ public class MyScheduleServerController {
         return myScheduleService.getSchedule(id);
     }
 
-
     @GetMapping("/schedules")
     public List<MyScheduleResponseDto> getSchedules(
             @RequestParam(value = "updatedDay", required = false) String updatedDay,
@@ -48,28 +47,10 @@ public class MyScheduleServerController {
 
     @PutMapping("/schedules/{id}")
     public MyScheduleResponseDto  updateMemo(@PathVariable Long id, @RequestBody MyScheduleRequestDto myScheduleRequestDto) {
-        // 해당 메모가 DB에 존재하는지 확인
-        MySchedule mySchedule = findById(id);
-        if(mySchedule != null) {
-            // 비밀번호 확인
-            if (!mySchedule.getPassword().equals(myScheduleRequestDto.getPassword())) {
-                throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-            }
+        MyScheduleService myScheduleService = new MyScheduleService(jdbcTemplate);
+        return myScheduleService.updateMemo(id, myScheduleRequestDto);
 
-            // schedule 내용 수정
-            String sql = "UPDATE schedule SET task = ?, manager = ?, updated_day = ? WHERE id = ?";
-            jdbcTemplate.update(sql, myScheduleRequestDto.getTask(), myScheduleRequestDto.getManager(), new Timestamp(System.currentTimeMillis()), id);
 
-            return new MyScheduleResponseDto(
-                    mySchedule.getId(),
-                    mySchedule.getTask(),
-                    mySchedule.getManager(),
-                    mySchedule.getCreatedDay(),
-                    mySchedule.getUpdatedDay()
-            );
-        } else {
-            throw new IllegalArgumentException("선택한 Schedule은 존재하지 않습니다.");
-        }
     }
 
     @DeleteMapping("/schedules/{id}")
