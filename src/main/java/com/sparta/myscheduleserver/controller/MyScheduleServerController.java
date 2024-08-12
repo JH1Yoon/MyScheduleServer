@@ -46,15 +46,13 @@ public class MyScheduleServerController {
     }
 
     @PutMapping("/schedules/{id}")
-    public MyScheduleResponseDto  updateMemo(@PathVariable Long id, @RequestBody MyScheduleRequestDto myScheduleRequestDto) {
+    public MyScheduleResponseDto  updateSchedule(@PathVariable Long id, @RequestBody MyScheduleRequestDto myScheduleRequestDto) {
         MyScheduleService myScheduleService = new MyScheduleService(jdbcTemplate);
-        return myScheduleService.updateMemo(id, myScheduleRequestDto);
-
-
+        return myScheduleService.updateSchedule(id, myScheduleRequestDto);
     }
 
     @DeleteMapping("/schedules/{id}")
-    public Long deleteMemo(@PathVariable Long id, @RequestParam String password) {
+    public Long deleteSchedule(@PathVariable Long id, @RequestParam String password) {
         // 해당 메모가 DB에 존재하는지 확인
         MySchedule mySchedule = findById(id);
         if(mySchedule != null) {

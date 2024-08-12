@@ -58,7 +58,7 @@ public class MyScheduleService {
         return myScheduleRepository.findSchedules(updatedDay, manager);
     }
 
-    public MyScheduleResponseDto updateMemo(Long id, MyScheduleRequestDto myScheduleRequestDto) {
+    public MyScheduleResponseDto updateSchedule(Long id, MyScheduleRequestDto myScheduleRequestDto) {
         // DB 저장
         MyScheduleRepository myScheduleRepository = new MyScheduleRepository(jdbcTemplate);
 
