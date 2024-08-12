@@ -32,4 +32,40 @@ public class MyScheduleService {
 
         return myScheduleResponseDto;
     }
+
+    public MyScheduleResponseDto getSchedule(Long id) {
+        // DB 조회
+        MySchedule mySchedule = findById(id);
+        if (mySchedule != null) {
+            // Entity -> ResponseDto (비밀번호 제외)
+            return new MyScheduleResponseDto(
+                    mySchedule.getId(),
+                    mySchedule.getTask(),
+                    mySchedule.getManager(),
+                    mySchedule.getCreatedDay(),
+                    mySchedule.getUpdatedDay()
+            );
+        } else {
+            throw new IllegalArgumentException(id + "라는 ID가 Schedule에 없습니다.");
+        }
+    }
+
+    private MySchedule findById(Long id) {
+        // DB 조회
+        String sql = "SELECT * FROM schedule WHERE id = ?";
+        return jdbcTemplate.query(sql, resultSet -> {
+            if (resultSet.next()) {
+                MySchedule mySchedule = new MySchedule();
+                mySchedule.setId(resultSet.getLong("id"));
+                mySchedule.setTask(resultSet.getString("task"));
+                mySchedule.setManager(resultSet.getString("manager"));
+                mySchedule.setPassword(resultSet.getString("password"));
+                mySchedule.setCreatedDay(resultSet.getTimestamp("created_day"));
+                mySchedule.setUpdatedDay(resultSet.getTimestamp("updated_day"));
+                return mySchedule;
+            } else {
+                return null;
+            }
+        }, id);
+    }
 }

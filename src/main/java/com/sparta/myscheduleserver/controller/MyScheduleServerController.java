@@ -32,20 +32,8 @@ public class MyScheduleServerController {
 
     @GetMapping("/schedules/{id}")
     public MyScheduleResponseDto getSchedule(@PathVariable Long id) {
-        // DB 조회
-        MySchedule mySchedule = findById(id);
-        if (mySchedule != null) {
-            // Entity -> ResponseDto (비밀번호 제외)
-            return new MyScheduleResponseDto(
-                    mySchedule.getId(),
-                    mySchedule.getTask(),
-                    mySchedule.getManager(),
-                    mySchedule.getCreatedDay(),
-                    mySchedule.getUpdatedDay()
-            );
-        } else {
-            throw new IllegalArgumentException(id + "라는 ID가 Schedule에 없습니다.");
-        }
+        MyScheduleService myScheduleService = new MyScheduleService(jdbcTemplate);
+        return myScheduleService.getSchedule(id);
     }
 
 
