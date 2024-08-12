@@ -2,16 +2,10 @@ package com.sparta.myscheduleserver.controller;
 
 import com.sparta.myscheduleserver.dto.MyScheduleRequestDto;
 import com.sparta.myscheduleserver.dto.MyScheduleResponseDto;
-import com.sparta.myscheduleserver.entity.MySchedule;
 import com.sparta.myscheduleserver.service.MyScheduleService;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -46,47 +40,14 @@ public class MyScheduleServerController {
     }
 
     @PutMapping("/schedules/{id}")
-    public MyScheduleResponseDto  updateSchedule(@PathVariable Long id, @RequestBody MyScheduleRequestDto myScheduleRequestDto) {
+    public MyScheduleResponseDto updateSchedule(@PathVariable Long id, @RequestBody MyScheduleRequestDto myScheduleRequestDto) {
         MyScheduleService myScheduleService = new MyScheduleService(jdbcTemplate);
         return myScheduleService.updateSchedule(id, myScheduleRequestDto);
     }
 
     @DeleteMapping("/schedules/{id}")
     public Long deleteSchedule(@PathVariable Long id, @RequestParam String password) {
-        // 해당 메모가 DB에 존재하는지 확인
-        MySchedule mySchedule = findById(id);
-        if(mySchedule != null) {
-            // 비밀번호 확인
-            if (mySchedule.getPassword().equals(password)) {
-                // schedule 삭제
-                String sql = "DELETE FROM schedule WHERE id = ?";
-                jdbcTemplate.update(sql, id);
-
-                return id;
-            } else {
-                throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-            }
-        } else {
-            throw new IllegalArgumentException("선택한 Schedule은 존재하지 않습니다.");
-        }
-    }
-
-        private MySchedule findById(Long id) {
-        // DB 조회
-        String sql = "SELECT * FROM schedule WHERE id = ?";
-        return jdbcTemplate.query(sql, resultSet -> {
-            if (resultSet.next()) {
-                MySchedule mySchedule = new MySchedule();
-                mySchedule.setId(resultSet.getLong("id"));
-                mySchedule.setTask(resultSet.getString("task"));
-                mySchedule.setManager(resultSet.getString("manager"));
-                mySchedule.setPassword(resultSet.getString("password"));
-                mySchedule.setCreatedDay(resultSet.getTimestamp("created_day"));
-                mySchedule.setUpdatedDay(resultSet.getTimestamp("updated_day"));
-                return mySchedule;
-            } else {
-                return null;
-            }
-        }, id);
+        MyScheduleService myScheduleService = new MyScheduleService(jdbcTemplate);
+        return myScheduleService.deleteSchedule(id, password);
     }
 }

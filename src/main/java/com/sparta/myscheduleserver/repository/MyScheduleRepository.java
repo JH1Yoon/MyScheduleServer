@@ -43,6 +43,23 @@ public class MyScheduleRepository {
         return mySchedule;
     }
 
+    public MyScheduleResponseDto getSchedule(Long id) {
+        // DB 조회
+        MySchedule mySchedule = findById(id);
+        if (mySchedule != null) {
+            // Entity -> ResponseDto (비밀번호 제외)
+            return new MyScheduleResponseDto(
+                    mySchedule.getId(),
+                    mySchedule.getTask(),
+                    mySchedule.getManager(),
+                    mySchedule.getCreatedDay(),
+                    mySchedule.getUpdatedDay()
+            );
+        } else {
+            throw new IllegalArgumentException(id + "라는 ID가 Schedule에 없습니다.");
+        }
+    }
+
     public List<MyScheduleResponseDto> findSchedules(String updatedDay, String manager) {
         // SQL 쿼리와 파라미터 리스트 초기화
         StringBuilder sql = new StringBuilder("SELECT * FROM schedule");
@@ -80,6 +97,18 @@ public class MyScheduleRepository {
         });
     }
 
+    public void update(Long id, String task, String manager, Timestamp timestamp) {
+        // schedule 내용 수정
+        String sql = "UPDATE schedule SET task = ?, manager = ?, updated_day = ? WHERE id = ?";
+        jdbcTemplate.update(sql, task,manager, new Timestamp(System.currentTimeMillis()), id);
+    }
+
+    public void delete(Long id) {
+        // schedule 삭제
+        String sql = "DELETE FROM schedule WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
+
     public MySchedule findById(Long id) {
         // DB 조회
         String sql = "SELECT * FROM schedule WHERE id = ?";
@@ -97,11 +126,5 @@ public class MyScheduleRepository {
                 return null;
             }
         }, id);
-    }
-
-    public void update(Long id, String task, String manager, Timestamp timestamp) {
-        // schedule 내용 수정
-        String sql = "UPDATE schedule SET task = ?, manager = ?, updated_day = ? WHERE id = ?";
-        jdbcTemplate.update(sql, task,manager, new Timestamp(System.currentTimeMillis()), id);
     }
 }
