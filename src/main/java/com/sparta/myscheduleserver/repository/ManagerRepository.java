@@ -18,17 +18,19 @@ public class ManagerRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // 담당자 생성
     public void save(Manager manager) {
         String sql = "INSERT INTO manager (name, email, created_day, updated_day) VALUES (?, ?, ?, ?)";
         jdbcTemplate.update(sql, manager.getName(), manager.getEmail(), manager.getCreatedDay(), manager.getUpdatedDay());
     }
 
-    // 관리자 이름을 ID로 조회
+    // 특정 ID에 해당하는 담당자 이름
     public String findManagerNameById(Long managerId) {
         String sql = "SELECT name FROM manager WHERE id = ?";
         return jdbcTemplate.queryForObject(sql, new Object[]{managerId}, String.class);
     }
 
+    // 특정 ID에 해당하는 담당자 조회
     public Manager findById(Long id) {
         String sql = "SELECT * FROM manager WHERE id = ?";
         return jdbcTemplate.queryForObject(sql, new Object[]{id}, new RowMapper<Manager>() {
@@ -45,6 +47,7 @@ public class ManagerRepository {
         });
     }
 
+    // 담당자 목록 조회
     public List<Manager> findAll() {
         String sql = "SELECT * FROM manager";
         return jdbcTemplate.query(sql, new RowMapper<Manager>() {
@@ -61,11 +64,13 @@ public class ManagerRepository {
         });
     }
 
+    // 담당자 수정
     public void update(Long id, String name, String email) {
         String sql = "UPDATE manager SET name = ?, email = ?, updated_day = ? WHERE id = ?";
         jdbcTemplate.update(sql, name, email, new Timestamp(System.currentTimeMillis()), id);
     }
 
+    // 담당자 삭제
     public void delete(Long id) {
     // 존재 여부 확인
         String checkSql = "SELECT COUNT(*) FROM manager WHERE id = ?";

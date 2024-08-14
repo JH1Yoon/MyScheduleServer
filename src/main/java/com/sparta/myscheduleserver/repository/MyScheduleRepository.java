@@ -20,6 +20,7 @@ public class MyScheduleRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // 일정 생성
     public MySchedule save(MySchedule mySchedule) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         String sql = "INSERT INTO schedule (task, manager_id, password, created_day, updated_day) VALUES (?, ?, ?, ?, ?)";
@@ -38,6 +39,7 @@ public class MyScheduleRepository {
         return mySchedule;
     }
 
+    // 특정 ID에 해당하는 일정 조회
     public MyScheduleResponseDto getSchedule(Long id) {
         // DB 조회
         MySchedule mySchedule = findById(id);
@@ -52,6 +54,7 @@ public class MyScheduleRepository {
         }
     }
 
+    // 일정목록 조회
     public List<MyScheduleResponseDto> getSchedules(String updatedDay, String manager, int pageNumber, int pageSize) {
         // SQL 쿼리와 파라미터 리스트 초기화
         StringBuilder sql = new StringBuilder("SELECT s.*, m.name as manager_name FROM schedule s JOIN manager m ON s.manager_id = m.id");
@@ -97,18 +100,21 @@ public class MyScheduleRepository {
         });
     }
 
+    // 일정 수정
     public void update(Long id, String task, Long manager_id, Timestamp timestamp) {
         // schedule 내용 수정
         String sql = "UPDATE schedule SET task = ?, manager_id = ?, updated_day = ? WHERE id = ?";
         jdbcTemplate.update(sql, task, manager_id, new Timestamp(System.currentTimeMillis()), id);
     }
 
+    // 일정 삭제
     public void delete(Long id) {
         // schedule 삭제
         String sql = "DELETE FROM schedule WHERE id = ?";
         jdbcTemplate.update(sql, id);
     }
 
+    // 해당하는 ID의 일정 찾기
     public MySchedule findById(Long id) {
         // DB 조회
         String sql = "SELECT * FROM schedule WHERE id = ?";
