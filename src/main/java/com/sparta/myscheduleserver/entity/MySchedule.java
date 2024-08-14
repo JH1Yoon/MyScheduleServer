@@ -13,17 +13,26 @@ import java.sql.Timestamp;
 public class MySchedule {
     private Long id;
     private String task;
-    private String manager;
+    private Long managerId;
     private String password;
     private Timestamp createdDay;
     private Timestamp updatedDay;
 
     public MySchedule(MyScheduleRequestDto myScheduleRequestDto) {
         this.task = myScheduleRequestDto.getTask();
-        this.manager = myScheduleRequestDto.getManager();
+        this.managerId = myScheduleRequestDto.getManagerId();
         this.password = myScheduleRequestDto.getPassword();
         this.createdDay = new Timestamp(System.currentTimeMillis());
         this.updatedDay = createdDay;
 
+    }
+
+    public MySchedule(Long id, String task, Long managerId, String password, Timestamp createdDay, Timestamp updatedDay) {
+        this.id = id;
+        this.task = task;
+        this.managerId = managerId;
+        this.password = password;
+        this.createdDay = createdDay;
+        this.updatedDay = updatedDay;
     }
 }

@@ -19,27 +19,20 @@ public class MyScheduleRepository {
     }
 
     public MySchedule save(MySchedule mySchedule) {
-        // DB 저장
-        KeyHolder keyHolder = new GeneratedKeyHolder(); // 기본 키를 반환받기 위한 객체
-
-        String sql = "INSERT INTO schedule (task, manager, password, created_day, updated_day) VALUES (?, ?, ?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String sql = "INSERT INTO schedule (task, manager_id, password, created_day, updated_day) VALUES (?, ?, ?, ?, ?)";
         jdbcTemplate.update(con -> {
-                    PreparedStatement preparedStatement = con.prepareStatement(sql,
-                            Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement preparedStatement = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            preparedStatement.setString(1, mySchedule.getTask());
+            preparedStatement.setLong(2, mySchedule.getManagerId()); // 올바른 manager_id 설정
+            preparedStatement.setString(3, mySchedule.getPassword());
+            preparedStatement.setTimestamp(4, mySchedule.getCreatedDay());
+            preparedStatement.setTimestamp(5, mySchedule.getUpdatedDay());
+            return preparedStatement;
+        }, keyHolder);
 
-                    preparedStatement.setString(1, mySchedule.getTask());
-                    preparedStatement.setString(2, mySchedule.getManager());
-                    preparedStatement.setString(3, mySchedule.getPassword());
-                    preparedStatement.setTimestamp(4, mySchedule.getCreatedDay());
-                    preparedStatement.setTimestamp(5, mySchedule.getUpdatedDay());
-                    return preparedStatement;
-                },
-                keyHolder);
-
-        // DB Insert 후 받아온 기본키 확인
         Long id = keyHolder.getKey().longValue();
         mySchedule.setId(id);
-
         return mySchedule;
     }
 
@@ -47,41 +40,38 @@ public class MyScheduleRepository {
         // DB 조회
         MySchedule mySchedule = findById(id);
         if (mySchedule != null) {
+            // 관리자의 이름을 조회
+            String managerName = jdbcTemplate.queryForObject(
+                    "SELECT name FROM manager WHERE id = ?", new Object[]{mySchedule.getManagerId()}, String.class);
             // Entity -> ResponseDto (비밀번호 제외)
-            return new MyScheduleResponseDto(
-                    mySchedule.getId(),
-                    mySchedule.getTask(),
-                    mySchedule.getManager(),
-                    mySchedule.getCreatedDay(),
-                    mySchedule.getUpdatedDay()
-            );
+            return new MyScheduleResponseDto(mySchedule, managerName);
         } else {
             throw new IllegalArgumentException(id + "라는 ID가 Schedule에 없습니다.");
         }
     }
 
-    public List<MyScheduleResponseDto> findSchedules(String updatedDay, String manager) {
+    public List<MyScheduleResponseDto> getSchedules(String updatedDay, String manager) {
         // SQL 쿼리와 파라미터 리스트 초기화
-        StringBuilder sql = new StringBuilder("SELECT * FROM schedule");
+        StringBuilder sql = new StringBuilder("SELECT s.*, m.name as manager_name FROM schedule s JOIN manager m ON s.manager_id = m.id");
         List<Object> params = new ArrayList<>();
 
         // 필터 조건 추가
         if (updatedDay != null && !updatedDay.isEmpty()) {
-            sql.append(" WHERE DATE(updated_day) = ?");
+            sql.append(" WHERE DATE(s.updated_day) = ?");
             params.add(Timestamp.valueOf(updatedDay + " 00:00:00"));
         }
 
-        if (manager != null && !manager.isEmpty()) {
+        if (manager != null) {
             if (params.isEmpty()) {
-                sql.append(" WHERE manager = ?");
+                sql.append(" WHERE m.name = ?");
             } else {
-                sql.append(" AND manager = ?");
+                sql.append(" AND m.name = ?");
             }
             params.add(manager);
         }
 
         // 정렬 추가
-        sql.append(" ORDER BY updated_day DESC");
+        sql.append(" ORDER BY s.updated_day DESC");
 
         // DB 조회
         return jdbcTemplate.query(sql.toString(), params.toArray(), new RowMapper<MyScheduleResponseDto>() {
@@ -89,18 +79,20 @@ public class MyScheduleRepository {
             public MyScheduleResponseDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                 Long id = rs.getLong("id");
                 String task = rs.getString("task");
-                String managerName = rs.getString("manager");
+                Long managerId = rs.getLong("manager_id");
+                String managerName = rs.getString("manager_name");
                 Timestamp createdDay = rs.getTimestamp("created_day");
                 Timestamp updatedDayTimestamp = rs.getTimestamp("updated_day");
-                return new MyScheduleResponseDto(id, task, managerName, createdDay, updatedDayTimestamp);
+
+                return new MyScheduleResponseDto(id, task, managerId, managerName, createdDay, updatedDayTimestamp);
             }
         });
     }
 
-    public void update(Long id, String task, String manager, Timestamp timestamp) {
+    public void update(Long id, String task, Long manager_id, Timestamp timestamp) {
         // schedule 내용 수정
-        String sql = "UPDATE schedule SET task = ?, manager = ?, updated_day = ? WHERE id = ?";
-        jdbcTemplate.update(sql, task,manager, new Timestamp(System.currentTimeMillis()), id);
+        String sql = "UPDATE schedule SET task = ?, manager_id = ?, updated_day = ? WHERE id = ?";
+        jdbcTemplate.update(sql, task, manager_id, new Timestamp(System.currentTimeMillis()), id);
     }
 
     public void delete(Long id) {
@@ -117,7 +109,7 @@ public class MyScheduleRepository {
                 MySchedule mySchedule = new MySchedule();
                 mySchedule.setId(resultSet.getLong("id"));
                 mySchedule.setTask(resultSet.getString("task"));
-                mySchedule.setManager(resultSet.getString("manager"));
+                mySchedule.setManagerId(resultSet.getLong("manager_id"));
                 mySchedule.setPassword(resultSet.getString("password"));
                 mySchedule.setCreatedDay(resultSet.getTimestamp("created_day"));
                 mySchedule.setUpdatedDay(resultSet.getTimestamp("updated_day"));

@@ -3,6 +3,7 @@ package com.sparta.myscheduleserver.service;
 import com.sparta.myscheduleserver.dto.MyScheduleRequestDto;
 import com.sparta.myscheduleserver.dto.MyScheduleResponseDto;
 import com.sparta.myscheduleserver.entity.MySchedule;
+import com.sparta.myscheduleserver.repository.ManagerRepository;
 import com.sparta.myscheduleserver.repository.MyScheduleRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -16,19 +17,16 @@ public class MyScheduleService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-
     public MyScheduleResponseDto createSchedule(MyScheduleRequestDto myScheduleRequestDto) {
-        // RequestDto -> Entity
         MySchedule mySchedule = new MySchedule(myScheduleRequestDto);
 
-        // DB 저장
         MyScheduleRepository myScheduleRepository = new MyScheduleRepository(jdbcTemplate);
         MySchedule saveMySchedule = myScheduleRepository.save(mySchedule);
 
-        // Entity -> ResponseDto
-        MyScheduleResponseDto myScheduleResponseDto = new MyScheduleResponseDto(mySchedule);
+        ManagerRepository managerRepository = new ManagerRepository(jdbcTemplate);
+        String managerName = managerRepository.findManagerNameById(saveMySchedule.getManagerId());
 
-        return myScheduleResponseDto;
+        return new MyScheduleResponseDto(saveMySchedule, managerName);
     }
 
     public MyScheduleResponseDto getSchedule(Long id) {
@@ -39,13 +37,14 @@ public class MyScheduleService {
     public List<MyScheduleResponseDto> getSchedules(String updatedDay, String manager) {
         // DB 저장
         MyScheduleRepository myScheduleRepository = new MyScheduleRepository(jdbcTemplate);
-        return myScheduleRepository.findSchedules(updatedDay, manager);
+
+        return myScheduleRepository.getSchedules(updatedDay, manager);
     }
 
     public MyScheduleResponseDto updateSchedule(Long id, MyScheduleRequestDto myScheduleRequestDto) {
         // DB 저장
         MyScheduleRepository myScheduleRepository = new MyScheduleRepository(jdbcTemplate);
-
+        ManagerRepository managerRepository = new ManagerRepository(jdbcTemplate);
         // 해당 메모가 DB에 존재하는지 확인
         MySchedule mySchedule = myScheduleRepository.findById(id);
         if(mySchedule != null) {
@@ -54,15 +53,12 @@ public class MyScheduleService {
                 throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
             }
 
-            myScheduleRepository.update(id, myScheduleRequestDto.getTask(), myScheduleRequestDto.getManager(), new Timestamp(System.currentTimeMillis()));
+            myScheduleRepository.update(id, myScheduleRequestDto.getTask(), myScheduleRequestDto.getManagerId(), new Timestamp(System.currentTimeMillis()));
 
-            return new MyScheduleResponseDto(
-                    mySchedule.getId(),
-                    mySchedule.getTask(),
-                    mySchedule.getManager(),
-                    mySchedule.getCreatedDay(),
-                    mySchedule.getUpdatedDay()
-            );
+        // 업데이트 후, 변경된 스케줄을 조회
+            MySchedule updatedSchedule = myScheduleRepository.findById(id);
+            String managerName = managerRepository.findManagerNameById(updatedSchedule.getManagerId());
+            return new MyScheduleResponseDto(updatedSchedule, managerName);
         } else {
             throw new IllegalArgumentException("선택한 Schedule은 존재하지 않습니다.");
         }
