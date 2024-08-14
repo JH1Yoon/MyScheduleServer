@@ -34,11 +34,14 @@ public class MyScheduleService {
         return myScheduleRepository.getSchedule(id);
     }
 
-    public List<MyScheduleResponseDto> getSchedules(String updatedDay, String manager) {
+    public List<MyScheduleResponseDto> getSchedules(String updatedDay, String manager, Integer pageNumber, Integer pageSize) {
         // DB 저장
         MyScheduleRepository myScheduleRepository = new MyScheduleRepository(jdbcTemplate);
 
-        return myScheduleRepository.getSchedules(updatedDay, manager);
+        int pageNum = (pageNumber != null) ? pageNumber : 1;
+        int pageSz = (pageSize != null) ? pageSize : 10;
+
+        return myScheduleRepository.getSchedules(updatedDay, manager, pageNum, pageSz);
     }
 
     public MyScheduleResponseDto updateSchedule(Long id, MyScheduleRequestDto myScheduleRequestDto) {

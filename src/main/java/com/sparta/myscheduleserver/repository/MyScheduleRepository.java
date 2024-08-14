@@ -50,7 +50,7 @@ public class MyScheduleRepository {
         }
     }
 
-    public List<MyScheduleResponseDto> getSchedules(String updatedDay, String manager) {
+    public List<MyScheduleResponseDto> getSchedules(String updatedDay, String manager, int pageNumber, int pageSize) {
         // SQL 쿼리와 파라미터 리스트 초기화
         StringBuilder sql = new StringBuilder("SELECT s.*, m.name as manager_name FROM schedule s JOIN manager m ON s.manager_id = m.id");
         List<Object> params = new ArrayList<>();
@@ -72,6 +72,12 @@ public class MyScheduleRepository {
 
         // 정렬 추가
         sql.append(" ORDER BY s.updated_day DESC");
+
+        // 페이지네이션 조회
+        int offset  = (pageNumber -1) * pageSize;
+        sql.append(" LIMIT ? OFFSET ? ");
+        params.add(pageSize);
+        params.add(offset);
 
         // DB 조회
         return jdbcTemplate.query(sql.toString(), params.toArray(), new RowMapper<MyScheduleResponseDto>() {

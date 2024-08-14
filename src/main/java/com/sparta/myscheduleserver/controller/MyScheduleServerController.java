@@ -33,10 +33,11 @@ public class MyScheduleServerController {
     @GetMapping("/schedules")
     public List<MyScheduleResponseDto> getSchedules(
             @RequestParam(value = "updatedDay", required = false) String updatedDay,
-            @RequestParam(value = "manager", required = false) String manager) {
+            @RequestParam(value = "manager", required = false) String manager,
+            Integer pageNumber, Integer pageSize) {
 
         MyScheduleService myScheduleService = new MyScheduleService(jdbcTemplate);
-        return myScheduleService.getSchedules(updatedDay, manager);
+        return myScheduleService.getSchedules(updatedDay, manager, pageNumber, pageSize);
     }
 
     @PutMapping("/schedules/{id}")
